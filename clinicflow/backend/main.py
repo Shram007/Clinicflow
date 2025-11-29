@@ -1,13 +1,12 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .api import routes_visits, routes_health
+from .api import routes_health, routes_visits  # note the dot
 
 app = FastAPI(title="ClinicFlow Backend")
 
-# CORS – allow frontend
 origins = [
-    "http://localhost:5173",  # Vite default
+    "http://localhost:5173",  # Vite dev server
 ]
 
 app.add_middleware(
