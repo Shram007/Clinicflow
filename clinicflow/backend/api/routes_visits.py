@@ -21,17 +21,3 @@ MOCK_VISITS = [
 @router.get("/visits", response_model=list[VisitSummary])
 async def list_visits():
     return MOCK_VISITS
-
-@router.get("/visits/{visit_id}", response_model=VisitDetail)
-async def get_visit(visit_id: int):
-    base = next((v for v in MOCK_VISITS if v.id == visit_id), None) or MOCK_VISITS[0]
-    return VisitDetail(
-        id=base.id,
-        title=base.title,
-        date=base.date,
-        summary=base.summary,
-        subjective="Patient reports intermittent chest tightness for 3 days...",
-        objective="Vitals stable. Normal ECG in clinic.",
-        assessment="Likely non-cardiac chest pain, rule out GERD.",
-        plan="Start PPI trial, follow-up in 2 weeks, ER precautions explained.",
-    )
