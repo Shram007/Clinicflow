@@ -83,33 +83,23 @@ const Visits = () => {
   useEffect(() => {
     async function loadVisits() {
       try {
-        const res = await fetch("http://localhost:8000/api/visits");
-
-        console.log("Response status:", res.status); // debug
-
-        if (!res.ok) {
-          throw new Error(`Failed to load visits (status ${res.status})`);
-        }
-
+        const res = await fetch("/api/visits");
+        if (!res.ok) throw new Error(`Failed to load visits (${res.status})`);
         const data: VisitSummary[] = await res.json();
         setVisits(data);
       } catch (err: any) {
-        console.error("Error while fetching visits:", err);
         setError(err?.message ?? "Unknown error");
       } finally {
         setLoading(false);
       }
     }
-
     loadVisits();
   }, []);
 
   return (
     <PageContainer>
       <h1 className="text-2xl font-semibold mb-2">Visits</h1>
-      <p className="text-sm text-slate-600 mb-4">
-        These are your recent ClinicFlow notes (currently using mock data from the backend).
-      </p>
+      <p className="text-sm text-slate-600 mb-4">Recent ClinicFlow notes</p>
 
       {loading && <p>Loading visits...</p>}
       {error && <p className="text-red-600">Error: {error}</p>}

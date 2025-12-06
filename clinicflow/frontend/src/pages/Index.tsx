@@ -3,6 +3,7 @@ import { Mic, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import MainNav from "@/components/MainNav";
 import PageContainer from "@/components/PageContainer";
+import MicRecorder from "@/components/MicRecorder";
 
 const Index = () => {
   return (
@@ -38,11 +39,7 @@ const Index = () => {
               </Button>
             </Link>
             
-            <Button size="lg" variant="outline" className="min-w-[160px]">
-              <Mic className="mr-2 h-5 w-5" />
-              Start New Note
-              {/* TODO: Implement voice recording functionality */}
-            </Button>
+            <MicRecorder />
           </div>
 
           <div className="grid md:grid-cols-3 gap-6 pt-12">

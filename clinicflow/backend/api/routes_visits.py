@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from schemas.visit import VisitSummary, VisitDetail
+from ..schemas.visit import VisitSummary, VisitDetail
 
 router = APIRouter()
 
