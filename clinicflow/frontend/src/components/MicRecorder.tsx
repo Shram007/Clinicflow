@@ -5,6 +5,8 @@ const MicRecorder = () => {
   const [recording, setRecording] = useState(false);
   const [transcript, setTranscript] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveMsg, setSaveMsg] = useState<string | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<BlobPart[]>([]);
   const streamRef = useRef<MediaStream | null>(null);
@@ -63,7 +65,36 @@ const MicRecorder = () => {
           value={transcript}
           onChange={e => setTranscript(e.target.value)}
         />
-        <Button size="sm">Run ClinicFlow</Button>
+        <div className="flex gap-2">
+          <Button size="sm">Run ClinicFlow</Button>
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={async () => {
+              if (!transcript) return;
+              setSaving(true);
+              setSaveMsg(null);
+              try {
+                const res = await fetch(`/api/visits`, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ transcript }),
+                });
+                if (!res.ok) throw new Error(`Failed to save visit (${res.status})`);
+                await res.json();
+                setSaveMsg("Visit saved! Check the Visits page.");
+              } catch (err: any) {
+                setSaveMsg(err?.message ?? "Error saving visit.");
+              } finally {
+                setSaving(false);
+              }
+            }}
+            disabled={saving || !transcript}
+          >
+            {saving ? "Saving..." : "Save as Visit"}
+          </Button>
+        </div>
+        {saveMsg && <p className="text-xs text-muted-foreground">{saveMsg}</p>}
       </div>
     </div>
   );

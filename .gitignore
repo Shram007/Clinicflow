@@ -41,3 +41,6 @@ htmlcov/
 *.njsproj
 *.sln
 *.sw?
+
+# Env files
+clinicflow/.env

@@ -11,3 +11,6 @@ class VisitDetail(VisitSummary):
     objective: str
     assessment: str
     plan: str
+
+class VisitCreate(BaseModel):
+    transcript: str
