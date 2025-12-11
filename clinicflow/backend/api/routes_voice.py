@@ -1,12 +1,13 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException
 from pathlib import Path
+import os
 import uuid
 from ..schemas.voice import VoiceUploadResponse
 from ..services.stt_service import transcribe_audio
 
 router = APIRouter()
 
-AUDIO_DIR = Path("audio_uploads")
+AUDIO_DIR = Path(os.getenv("AUDIO_DIR", "audio_uploads"))
 AUDIO_DIR.mkdir(exist_ok=True)
 
 @router.post("/voice/upload", response_model=VoiceUploadResponse)

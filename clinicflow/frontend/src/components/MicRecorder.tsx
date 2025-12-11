@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { apiUrl } from "@/lib/api";
 
 const MicRecorder = () => {
   const [recording, setRecording] = useState(false);
@@ -25,7 +26,7 @@ const MicRecorder = () => {
       setUploading(true);
       const fd = new FormData();
       fd.append("file", blob, "recording.webm");
-      const res = await fetch(`/api/voice/upload`, { method: "POST", body: fd });
+      const res = await fetch(apiUrl(`/api/voice/upload`), { method: "POST", body: fd });
       const data = await res.json();
       setTranscript(data.transcript || "");
       setUploading(false);
@@ -75,7 +76,7 @@ const MicRecorder = () => {
               setSaving(true);
               setSaveMsg(null);
               try {
-                const res = await fetch(`/api/visits`, {
+                const res = await fetch(apiUrl(`/api/visits`), {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify({ transcript }),

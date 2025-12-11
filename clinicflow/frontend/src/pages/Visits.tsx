@@ -65,6 +65,7 @@
 // export default Visits;
 
 import { useEffect, useState } from "react";
+import { getJson } from "@/lib/api";
 import PageContainer from "@/components/PageContainer";
 import VisitCard from "@/components/VisitCard";
 
@@ -83,9 +84,7 @@ const Visits = () => {
   useEffect(() => {
     async function loadVisits() {
       try {
-        const res = await fetch("/api/visits");
-        if (!res.ok) throw new Error(`Failed to load visits (${res.status})`);
-        const data: VisitSummary[] = await res.json();
+        const data = await getJson<VisitSummary[]>("/api/visits");
         setVisits(data);
       } catch (err: any) {
         setError(err?.message ?? "Unknown error");
