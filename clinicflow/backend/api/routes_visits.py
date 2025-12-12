@@ -3,7 +3,7 @@ from typing import List
 from ..schemas.visit import VisitSummary, VisitDetail, VisitCreate
 from ..services.agents_service import generate_visit_from_transcript
 from fastapi.responses import FileResponse
-from services.tts_service import synthesize_speech
+from ..services.tts_service import synthesize_speech
 
 router = APIRouter()
 
