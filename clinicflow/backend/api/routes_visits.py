@@ -2,6 +2,8 @@ from fastapi import APIRouter, HTTPException
 from typing import List
 from ..schemas.visit import VisitSummary, VisitDetail, VisitCreate
 from ..services.agents_service import generate_visit_from_transcript
+from fastapi.responses import FileResponse
+from services.tts_service import synthesize_speech
 
 router = APIRouter()
 
@@ -42,3 +44,22 @@ async def create_visit(payload: VisitCreate):
     visit = generate_visit_from_transcript(payload.transcript, new_id)
     VISITS_DB.append(visit)
     return visit
+@router.get("/visits/{visit_id}/summary_audio")
+async def get_visit_summary_audio(visit_id: int):
+    visit = next((v for v in VISITS_DB if v.id == visit_id), None)
+    if not visit:
+        raise HTTPException(status_code=404, detail="Visit not found")
+
+    spoken_text = (
+        f"Visit {visit.id}. {visit.title}. "
+        f"Assessment: {visit.assessment}. "
+        f"Plan: {visit.plan}."
+    )
+
+    audio_path = synthesize_speech(spoken_text, visit_id)
+
+    return FileResponse(
+        path=audio_path,
+        media_type="audio/mpeg",
+        filename=audio_path.name,
+    )
