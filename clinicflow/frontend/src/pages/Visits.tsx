@@ -108,6 +108,7 @@ const Visits = () => {
         {visits.map((visit) => (
           <VisitCard
             key={visit.id}
+            id={visit.id}
             title={visit.title}
             date={visit.date}
             summary={visit.summary}
