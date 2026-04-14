@@ -91,3 +91,29 @@ Pin Backend Port for Production Compatibility
 - Notes:
   - With `BACKEND_PORT=8000`, Vite’s dev proxy requires no changes.
   - In production, keep the API behind a reverse proxy and serve the frontend under the same domain to avoid CORS.
+
+## MCP Server
+
+`clinicflow/backend/mcp_server.py` exposes clinical documentation tools as [Model Context Protocol](https://modelcontextprotocol.io/) callable tools over stdio JSON-RPC 2.0.
+
+### Tools exposed
+
+| Tool | Description |
+|------|-------------|
+| `generate_soap_note` | Generate a SOAP note from a voice transcript |
+| `list_visits` | List all stored visit summaries |
+| `get_visit` | Retrieve a single visit by ID |
+
+### Run the MCP server
+
+```bash
+python clinicflow/backend/mcp_server.py
+```
+
+The server reads JSON-RPC 2.0 requests from `stdin` and writes responses to `stdout` — compatible with any MCP host (Claude Desktop, Cursor, etc.).
+
+### Smoke test (no API key required)
+
+```bash
+python clinicflow/backend/tests/test_mcp_server.py
+```
