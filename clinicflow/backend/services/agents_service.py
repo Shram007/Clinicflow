@@ -7,10 +7,28 @@ from ..schemas.visit import VisitDetail
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-def generate_visit_from_transcript(transcript: str, visit_id: int) -> VisitDetail:
-    prompt = (
+PROMPTS: dict[str, str] = {
+    "v1": (
         "You are a clinical documentation assistant. Given the following doctor voice note transcript, "
         "produce a concise SOAP note plus a short title and 1–2 sentence summary.\n\n"
+        "Respond in strict JSON with keys: title, subjective, objective, assessment, plan, summary."
+    ),
+    "v2": (
+        "You are a precise medical scribe. Convert the transcript into a SOAP note. "
+        "Be conservative: do not infer diagnoses not explicitly stated. "
+        "Respond in strict JSON with keys: title, subjective, objective, assessment, plan, summary."
+    ),
+}
+
+ACTIVE_PROMPT_VERSION = os.getenv("PROMPT_VERSION", "v1")
+if ACTIVE_PROMPT_VERSION not in PROMPTS:
+    raise ValueError(
+        f"PROMPT_VERSION={ACTIVE_PROMPT_VERSION!r} is not a valid version. "
+        f"Choose from: {list(PROMPTS)}"
+    )
+
+def generate_visit_from_transcript(transcript: str, visit_id: int) -> VisitDetail:
+    prompt = (
         f"Transcript:\n{transcript}\n\n"
         "Respond in strict JSON with keys:\n"
         "- title (string)\n"
@@ -21,11 +39,12 @@ def generate_visit_from_transcript(transcript: str, visit_id: int) -> VisitDetai
         "- summary (string)\n"
     )
 
+    print(f"[prompt_version] active={ACTIVE_PROMPT_VERSION}")
     start = time.perf_counter()
     resp = client.chat.completions.create(
         model=os.getenv("VISIT_MODEL", "gpt-4o-mini"),
         messages=[
-            {"role": "system", "content": "You are a precise medical scribe. Do not add diagnoses not implied by the note."},
+            {"role": "system", "content": PROMPTS[ACTIVE_PROMPT_VERSION]},
             {"role": "user", "content": prompt},
         ],
         temperature=0.2,
