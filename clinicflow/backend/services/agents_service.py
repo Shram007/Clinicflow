@@ -4,6 +4,9 @@ from datetime import date
 import json
 from openai import OpenAI
 from ..schemas.visit import VisitDetail
+from ..observability import get_logger, record_llm_call
+
+log = get_logger()
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
@@ -39,31 +42,42 @@ def generate_visit_from_transcript(transcript: str, visit_id: int) -> VisitDetai
         "- summary (string)\n"
     )
 
-    print(f"[prompt_version] active={ACTIVE_PROMPT_VERSION}")
+    log.info("llm_call_start", visit_id=visit_id, prompt_version=ACTIVE_PROMPT_VERSION)
     start = time.perf_counter()
-    resp = client.chat.completions.create(
-        model=os.getenv("VISIT_MODEL", "gpt-4o-mini"),
-        messages=[
-            {"role": "system", "content": PROMPTS[ACTIVE_PROMPT_VERSION]},
-            {"role": "user", "content": prompt},
-        ],
-        temperature=0.2,
-    )
+    try:
+        resp = client.chat.completions.create(
+            model=os.getenv("VISIT_MODEL", "gpt-4o-mini"),
+            messages=[
+                {"role": "system", "content": PROMPTS[ACTIVE_PROMPT_VERSION]},
+                {"role": "user", "content": prompt},
+            ],
+            temperature=0.2,
+        )
+    except Exception as exc:
+        log.error("visit_generation_failed", visit_id=visit_id, error=str(exc))
+        raise
     latency_ms = (time.perf_counter() - start) * 1000
+
     usage = resp.usage
     if usage is not None:
-        print(
-            f"[llm_metrics] model={os.getenv('VISIT_MODEL', 'gpt-4o-mini')} "
-            f"tokens_in={usage.prompt_tokens} "
-            f"tokens_out={usage.completion_tokens} "
-            f"total_tokens={usage.total_tokens} "
-            f"latency_ms={latency_ms:.1f}"
+        record_llm_call(
+            model=resp.model,
+            input_tokens=usage.prompt_tokens,
+            output_tokens=usage.completion_tokens,
+            total_tokens=usage.total_tokens,
+            latency_ms=latency_ms,
+            visit_id=visit_id,
         )
 
     content = resp.choices[0].message.content
     try:
         data = json.loads(content)
     except Exception:
+        log.warning(
+            "visit_generation_fallback",
+            visit_id=visit_id,
+            reason="json_parse_failed",
+        )
         data = {
             "title": "Clinical visit",
             "subjective": transcript,
