@@ -1,4 +1,5 @@
 import os
+import time
 from datetime import date
 import json
 from openai import OpenAI
@@ -20,6 +21,7 @@ def generate_visit_from_transcript(transcript: str, visit_id: int) -> VisitDetai
         "- summary (string)\n"
     )
 
+    start = time.perf_counter()
     resp = client.chat.completions.create(
         model=os.getenv("VISIT_MODEL", "gpt-4o-mini"),
         messages=[
@@ -28,6 +30,16 @@ def generate_visit_from_transcript(transcript: str, visit_id: int) -> VisitDetai
         ],
         temperature=0.2,
     )
+    latency_ms = (time.perf_counter() - start) * 1000
+    usage = resp.usage
+    if usage is not None:
+        print(
+            f"[llm_metrics] model={os.getenv('VISIT_MODEL', 'gpt-4o-mini')} "
+            f"tokens_in={usage.prompt_tokens} "
+            f"tokens_out={usage.completion_tokens} "
+            f"total_tokens={usage.total_tokens} "
+            f"latency_ms={latency_ms:.1f}"
+        )
 
     content = resp.choices[0].message.content
     try:
